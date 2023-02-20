@@ -12,7 +12,20 @@ export default class Scrap {
   }
 
   async init () {
-    this.browser = await puppeteer.launch()
+    this.browser = await puppeteer.launch({
+      headless: true,
+      ignoreDefaultArgs: ['--disable-extensions'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        //"--single-process", // <- this one doesn't works in Windows
+        '--disable-gpu'
+      ]
+    })
     this.page = await this.browser.newPage()
   }
 
@@ -45,17 +58,17 @@ export default class Scrap {
     const cookies = [
       {
         name: 'aep_usuc_f',
-        value: 'isfm=y&site=esp&province=null&city=null&c_tp=USD&x_alimid=229076552&re_sns=google&isb=y&region=SV&b_locale=es_ES',
+        value:
+          'isfm=y&site=esp&province=null&city=null&c_tp=USD&x_alimid=229076552&re_sns=google&isb=y&region=SV&b_locale=es_ES',
         domain: '.aliexpress.com',
         path: '/',
-        expires: Math.floor((new Date().getTime() / 1000) + 86400),
+        expires: Math.floor(new Date().getTime() / 1000 + 86400)
         //httpOnly: true,
         //secure: true
-
       }
-    ];
-    await this.page.setCookie(...cookies);
-    await this.page.goto(url,{timeout: 0,waitUntil:'domcontentloaded'})
+    ]
+    await this.page.setCookie(...cookies)
+    await this.page.goto(url, { timeout: 0, waitUntil: 'domcontentloaded' })
     const html = await this.page.content()
     const $ = load(html)
     //search if exist the element with the class "customs-message-wrap"
@@ -65,10 +78,9 @@ export default class Scrap {
       price = $('.uniform-banner-box-price').text()
     }
 
-
     const name = $('.product-title-text').text()
     const image = $('.magnifier-image').attr('src')
-    console.log({price})
+    console.log({ price })
     if (availability) {
       return {
         alert: true,
@@ -76,7 +88,7 @@ export default class Scrap {
         image: image || '',
         price: 0,
         updatedAt: new Date().toISOString(),
-        available:false
+        available: false
       }
     }
     return {
@@ -85,7 +97,7 @@ export default class Scrap {
       image: image || '',
       price: price || 0,
       updatedAt: new Date().toISOString(),
-      available:true
+      available: true
     }
   }
 }

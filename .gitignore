@@ -3,3 +3,4 @@
 baileys_store_multi.json
 yarn-error.log
 /src/data/trackList.json
+.cache
